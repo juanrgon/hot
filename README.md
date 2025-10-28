@@ -136,6 +136,8 @@ hot --exclude "vendor,tmp,dist,testdata"
 | `--exclude` | See below | Comma-separated directories to exclude |
 | `--templ` | `false` | Watch `.templ` files and run `templ generate` |
 | `--tailwind` | `false` | Watch for Tailwind files and rebuild CSS |
+| `--tailwind-input` | `./input.css` | Tailwind input CSS file path |
+| `--tailwind-output` | `./static/output.css` | Tailwind output CSS file path |
 | `--version` | - | Show version information |
 
 **Default excluded directories:** `vendor`, `node_modules`, `.git`, `.idea`, `.vscode`, `tmp`, `dist`, `build`
