@@ -41,22 +41,22 @@ func (r *Runner) Start() error {
 		// Give the server a moment to start
 		time.Sleep(100 * time.Millisecond)
 	}
-	
+
 	// Initial build and run
 	if err := r.buildAndRun(); err != nil {
 		return fmt.Errorf("initial build failed: %w", err)
 	}
-	
+
 	// Start file watcher
 	r.watcher = NewWatcher(r.config)
-	
+
 	eventCh := make(chan string)
 	go r.watcher.Watch(r.ctx, eventCh)
-	
+
 	// Handle file change events
 	debounceTimer := time.NewTimer(0)
 	<-debounceTimer.C // drain the timer
-	
+
 	for {
 		select {
 		case <-r.ctx.Done():
@@ -64,11 +64,11 @@ func (r *Runner) Start() error {
 		case path := <-eventCh:
 			// Debounce rapid file changes
 			debounceTimer.Reset(300 * time.Millisecond)
-			
+
 			go func(p string) {
 				<-debounceTimer.C
 				log.Printf("📝 File changed: %s", p)
-				
+
 				// Run templ generate if .templ file changed
 				if r.config.IncludeTempl && hasExt(p, ".templ") {
 					log.Println("🔨 Running templ generate...")
@@ -76,7 +76,7 @@ func (r *Runner) Start() error {
 						log.Printf("⚠️  templ generate failed: %v", err)
 					}
 				}
-				
+
 				// Run tailwindcss if relevant files changed
 				if r.config.IncludeTailw && (hasExt(p, ".css") || hasExt(p, ".html") || hasExt(p, ".js")) {
 					log.Println("🎨 Running tailwindcss...")
@@ -84,7 +84,7 @@ func (r *Runner) Start() error {
 						log.Printf("⚠️  tailwindcss failed: %v", err)
 					}
 				}
-				
+
 				if err := r.buildAndRun(); err != nil {
 					log.Printf("❌ Build failed: %v", err)
 				} else {
@@ -101,7 +101,7 @@ func (r *Runner) Start() error {
 func (r *Runner) buildAndRun() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	// Stop existing process
 	if r.cmd != nil && r.cmd.Process != nil {
 		log.Println("🛑 Stopping existing process...")
@@ -109,42 +109,42 @@ func (r *Runner) buildAndRun() error {
 		r.cmd.Wait()
 		r.cmd = nil
 	}
-	
+
 	// Build
 	log.Printf("🔨 Building: %s", r.config.BuildCmd)
 	buildCmd := exec.Command("sh", "-c", r.config.BuildCmd)
 	buildCmd.Stdout = os.Stdout
 	buildCmd.Stderr = os.Stderr
-	
+
 	if err := buildCmd.Run(); err != nil {
 		return fmt.Errorf("build failed: %w", err)
 	}
-	
+
 	// Run
 	log.Printf("🚀 Starting: %s", r.config.RunCmd)
 	r.cmd = exec.Command("sh", "-c", r.config.RunCmd)
 	r.cmd.Stdout = os.Stdout
 	r.cmd.Stderr = os.Stderr
-	
+
 	if err := r.cmd.Start(); err != nil {
 		return fmt.Errorf("run failed: %w", err)
 	}
-	
+
 	log.Println("✅ Application started successfully")
 	return nil
 }
 
 func (r *Runner) Stop() {
 	r.cancel()
-	
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	if r.cmd != nil && r.cmd.Process != nil {
 		r.cmd.Process.Kill()
 		r.cmd.Wait()
 	}
-	
+
 	if r.liveReload != nil {
 		r.liveReload.Stop()
 	}

@@ -23,7 +23,7 @@ func NewWatcher(config *Config) *Watcher {
 func (w *Watcher) Watch(ctx context.Context, eventCh chan<- string) {
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -40,7 +40,7 @@ func (w *Watcher) checkFiles(eventCh chan<- string) {
 			if err != nil {
 				return nil
 			}
-			
+
 			// Skip excluded directories
 			if info.IsDir() {
 				for _, exclude := range w.config.ExcludeDirs {
@@ -50,7 +50,7 @@ func (w *Watcher) checkFiles(eventCh chan<- string) {
 				}
 				return nil
 			}
-			
+
 			// Check if file has watched extension
 			hasWatchedExt := false
 			for _, ext := range w.config.WatchExts {
@@ -59,15 +59,15 @@ func (w *Watcher) checkFiles(eventCh chan<- string) {
 					break
 				}
 			}
-			
+
 			if !hasWatchedExt {
 				return nil
 			}
-			
+
 			// Check if file was modified
 			modTime := info.ModTime()
 			lastMod, exists := w.lastModTime[path]
-			
+
 			if !exists {
 				// First time seeing this file
 				w.lastModTime[path] = modTime
@@ -79,7 +79,7 @@ func (w *Watcher) checkFiles(eventCh chan<- string) {
 				default:
 				}
 			}
-			
+
 			return nil
 		})
 	}
