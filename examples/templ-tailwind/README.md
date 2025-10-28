@@ -18,24 +18,24 @@ npm install -g tailwindcss
 
 ```bash
 # From this directory
-hot --mode web --templ --tailwind
+hot --mode web --exts ".go,.templ,.css,.html" --build "templ generate && tailwindcss -i ./input.css -o ./static/output.css && go build -o /tmp/hot-build/app"
 ```
 
 Or from the repository root:
 
 ```bash
-hot --mode web --templ --tailwind --watch ./examples/templ-tailwind
+hot --mode web --exts ".go,.templ,.css,.html" --build "templ generate && tailwindcss -i ./input.css -o ./static/output.css && go build -o /tmp/hot-build/app" --watch ./examples/templ-tailwind
 ```
 
 ## What it does
 
 1. Starts a web server on port 8080
 2. Enables live reload server on port 3000
-3. Watches for changes to:
-   - `.go` files → rebuilds the application
-   - `.templ` files → runs `templ generate`, then rebuilds
-   - `.css`, `.html`, `.js` files → runs `tailwindcss`, triggers browser reload
-4. Automatically reloads your browser when changes are detected
+3. Watches for changes to `.go`, `.templ`, `.css`, and `.html` files
+4. Runs `templ generate` to compile templates
+5. Runs `tailwindcss` to rebuild CSS
+6. Builds and restarts the application
+7. Automatically reloads your browser when changes are detected
 
 ## Project Structure
 
@@ -87,10 +87,10 @@ To use actual templ templates:
 
 3. Run with hot reload:
    ```bash
-   hot --mode web --templ --tailwind
+   hot --mode web --exts ".go,.templ,.css,.html" --build "templ generate && tailwindcss -i ./input.css -o ./static/output.css && go build -o /tmp/hot-build/app"
    ```
 
-The `--templ` flag will automatically run `templ generate` whenever `.templ` files change!
+The build command will automatically run `templ generate` and rebuild Tailwind CSS whenever watched files change!
 
 ## Tailwind Configuration
 

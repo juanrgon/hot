@@ -7,8 +7,7 @@ A fast and simple hot-reloading tool for Go applications with smart defaults. An
 - 🚀 **Zero config** - Works out of the box for most Go projects
 - 🌐 **Web mode** - Automatic browser reload via Server-Sent Events (SSE)
 - 🔌 **API mode** - Quick restart without browser reload overhead
-- 📦 **Templ support** - Automatically runs `templ generate` on `.templ` file changes
-- 🎨 **Tailwind support** - Watches and rebuilds Tailwind CSS
+- 🔧 **Flexible** - Custom build commands for any workflow (templ, tailwind, etc.)
 - ⚡ **Fast** - Efficient file watching with smart debouncing
 - 🎯 **Smart defaults** - Excludes common directories like `vendor`, `node_modules`, `.git`
 
@@ -84,20 +83,22 @@ This mode skips the browser reload server entirely, making it lighter and faster
 
 ### Web Server with Templ and Tailwind
 
-For modern Go web apps using [templ](https://templ.guide/) and Tailwind CSS:
+For modern Go web apps using [templ](https://templ.guide/) and Tailwind CSS, you can configure `hot` to watch for template and style changes:
 
 ```bash
-hot --mode web --templ --tailwind
+hot --mode web --exts ".go,.templ,.css,.html" --build "templ generate && tailwindcss -i ./input.css -o ./static/output.css && go build -o /tmp/hot-build/app"
 ```
 
-This will:
-- Watch `.go` and `.templ` files
-- Run `templ generate` when `.templ` files change
-- Watch `.css`, `.html`, and `.js` files for Tailwind
-- Run `tailwindcss` to rebuild your styles
-- Reload the browser automatically
+This approach:
+- Watches `.go`, `.templ`, `.css`, and `.html` files
+- Runs `templ generate` to compile templates
+- Runs `tailwindcss` to rebuild your styles
+- Builds your Go application
+- Reloads the browser automatically on changes
 
 **Note:** Make sure you have `templ` and `tailwindcss` installed and available in your PATH.
+
+Alternatively, you can use a Makefile or shell script to handle the build process and use `hot` with a custom build command.
 
 ### Custom Build and Run Commands
 
@@ -134,10 +135,6 @@ hot --exclude "vendor,tmp,dist,testdata"
 | `--watch` | `.` (current directory) | Comma-separated directories to watch |
 | `--exts` | `.go` | Comma-separated file extensions to watch |
 | `--exclude` | See below | Comma-separated directories to exclude |
-| `--templ` | `false` | Watch `.templ` files and run `templ generate` |
-| `--tailwind` | `false` | Watch for Tailwind files and rebuild CSS |
-| `--tailwind-input` | `./input.css` | Tailwind input CSS file path |
-| `--tailwind-output` | `./static/output.css` | Tailwind output CSS file path |
 | `--version` | - | Show version information |
 
 **Default excluded directories:** `vendor`, `node_modules`, `.git`, `.idea`, `.vscode`, `tmp`, `dist`, `build`
@@ -157,9 +154,8 @@ hot --exclude "vendor,tmp,dist,testdata"
 | Zero-config setup | ✅ Yes | ❌ Requires config file |
 | Web mode with browser reload | ✅ Built-in | ⚠️ Requires proxy |
 | API mode | ✅ Dedicated mode | ❌ Same as web |
-| Templ integration | ✅ Flag-based | ❌ Manual setup |
-| Tailwind integration | ✅ Flag-based | ❌ Manual setup |
-| Configuration | 🎯 CLI flags or config file | 📄 Config file only |
+| Custom build commands | ✅ Simple CLI flag | ⚠️ Config file required |
+| Configuration | 🎯 CLI flags | 📄 Config file only |
 
 ## Project Structure Example
 
@@ -182,7 +178,7 @@ myproject/
 Run with:
 
 ```bash
-hot --mode web --templ --tailwind
+hot --mode web --exts ".go,.templ,.css,.html" --build "templ generate && tailwindcss -i ./input.css -o ./static/output.css && go build -o /tmp/hot-build/app"
 ```
 
 Add to your HTML:

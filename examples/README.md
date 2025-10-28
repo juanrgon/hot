@@ -55,12 +55,12 @@ A web server using Templ templates and Tailwind CSS with integrated hot reload.
 **Run:**
 ```bash
 cd examples/templ-tailwind
-hot --mode web --templ --tailwind
+hot --mode web --exts ".go,.templ,.css,.html" --build "templ generate && tailwindcss -i ./input.css -o ./static/output.css && go build -o /tmp/hot-build/app"
 ```
 
 **Features:**
-- Automatic `templ generate` on `.templ` file changes
-- Automatic Tailwind CSS compilation
+- Watches `.go`, `.templ`, `.css`, and `.html` files
+- Runs `templ generate` and `tailwindcss` on changes via custom build command
 - Browser reload on any change
 - Full type-safe template development
 
@@ -80,7 +80,7 @@ cd examples/api && hot --mode api &
 sleep 3 && curl http://localhost:8080/api/status && kill %1
 
 # Templ + Tailwind (requires templ and tailwindcss installed)
-cd examples/templ-tailwind && hot --mode web --templ --tailwind
+cd examples/templ-tailwind && hot --mode web --exts ".go,.templ,.css,.html" --build "templ generate && tailwindcss -i ./input.css -o ./static/output.css && go build -o /tmp/hot-build/app"
 ```
 
 ## General Tips

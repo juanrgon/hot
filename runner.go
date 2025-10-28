@@ -69,22 +69,6 @@ func (r *Runner) Start() error {
 			debounceTimer = time.AfterFunc(300*time.Millisecond, func() {
 				log.Printf("📝 File changed: %s", path)
 
-				// Run templ generate if .templ file changed
-				if r.config.IncludeTempl && hasExt(path, ".templ") {
-					log.Println("🔨 Running templ generate...")
-					if err := runCommand("templ", "generate"); err != nil {
-						log.Printf("⚠️  templ generate failed: %v", err)
-					}
-				}
-
-				// Run tailwindcss if relevant files changed
-				if r.config.IncludeTailw && (hasExt(path, ".css") || hasExt(path, ".html") || hasExt(path, ".js")) {
-					log.Println("🎨 Running tailwindcss...")
-					if err := runCommand("tailwindcss", "-i", r.config.TailwindInput, "-o", r.config.TailwindOutput); err != nil {
-						log.Printf("⚠️  tailwindcss failed: %v", err)
-					}
-				}
-
 				if err := r.buildAndRun(); err != nil {
 					log.Printf("❌ Build failed: %v", err)
 				} else {
@@ -149,15 +133,4 @@ func (r *Runner) Stop() {
 	if r.liveReload != nil {
 		r.liveReload.Stop()
 	}
-}
-
-func runCommand(name string, args ...string) error {
-	cmd := exec.Command(name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
-func hasExt(path, ext string) bool {
-	return len(path) >= len(ext) && path[len(path)-len(ext):] == ext
 }
