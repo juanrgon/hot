@@ -53,24 +53,24 @@ func (r *Runner) Start() error {
 	eventCh := make(chan string)
 	go r.watcher.Watch(r.ctx, eventCh)
 
-	// Handle file change events
-	debounceTimer := time.NewTimer(0)
-	<-debounceTimer.C // drain the timer
+	// Handle file change events with debouncing
+	var debounceMu sync.Mutex
+	var debounceTimer *time.Timer
 
 	for {
 		select {
 		case <-r.ctx.Done():
 			return nil
 		case path := <-eventCh:
-			// Debounce rapid file changes
-			debounceTimer.Reset(300 * time.Millisecond)
-
-			go func(p string) {
-				<-debounceTimer.C
-				log.Printf("📝 File changed: %s", p)
+			debounceMu.Lock()
+			if debounceTimer != nil {
+				debounceTimer.Stop()
+			}
+			debounceTimer = time.AfterFunc(300*time.Millisecond, func() {
+				log.Printf("📝 File changed: %s", path)
 
 				// Run templ generate if .templ file changed
-				if r.config.IncludeTempl && hasExt(p, ".templ") {
+				if r.config.IncludeTempl && hasExt(path, ".templ") {
 					log.Println("🔨 Running templ generate...")
 					if err := runCommand("templ", "generate"); err != nil {
 						log.Printf("⚠️  templ generate failed: %v", err)
@@ -78,9 +78,9 @@ func (r *Runner) Start() error {
 				}
 
 				// Run tailwindcss if relevant files changed
-				if r.config.IncludeTailw && (hasExt(p, ".css") || hasExt(p, ".html") || hasExt(p, ".js")) {
+				if r.config.IncludeTailw && (hasExt(path, ".css") || hasExt(path, ".html") || hasExt(path, ".js")) {
 					log.Println("🎨 Running tailwindcss...")
-					if err := runCommand("tailwindcss", "-i", "./input.css", "-o", "./static/output.css"); err != nil {
+					if err := runCommand("tailwindcss", "-i", r.config.TailwindInput, "-o", r.config.TailwindOutput); err != nil {
 						log.Printf("⚠️  tailwindcss failed: %v", err)
 					}
 				}
@@ -93,7 +93,8 @@ func (r *Runner) Start() error {
 						r.liveReload.TriggerReload()
 					}
 				}
-			}(path)
+			})
+			debounceMu.Unlock()
 		}
 	}
 }

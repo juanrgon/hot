@@ -7,35 +7,40 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 )
 
 const version = "1.0.0"
 
 type Config struct {
-	Mode         string
-	Port         int
-	BuildCmd     string
-	RunCmd       string
-	WatchDirs    []string
-	WatchExts    []string
-	ExcludeDirs  []string
-	IncludeTempl bool
-	IncludeTailw bool
+	Mode           string
+	Port           int
+	BuildCmd       string
+	RunCmd         string
+	WatchDirs      []string
+	WatchExts      []string
+	ExcludeDirs    []string
+	IncludeTempl   bool
+	IncludeTailw   bool
+	TailwindInput  string
+	TailwindOutput string
 }
 
 func main() {
 	var (
-		mode         = flag.String("mode", "web", "Mode: web (browser reload) or api (no browser reload)")
-		port         = flag.Int("port", 3000, "Port for live reload server (web mode only)")
-		buildCmd     = flag.String("build", "", "Custom build command (default: go build -o /tmp/app)")
-		runCmd       = flag.String("run", "", "Custom run command (default: ./tmp/app)")
-		watchDirs    = flag.String("watch", "", "Comma-separated directories to watch (default: current directory)")
-		watchExts    = flag.String("exts", "", "Comma-separated file extensions to watch (default: .go)")
-		excludeDirs  = flag.String("exclude", "", "Comma-separated directories to exclude")
-		includeTempl = flag.Bool("templ", false, "Watch .templ files and run templ generate")
-		includeTailw = flag.Bool("tailwind", false, "Watch tailwind.config.js and run tailwindcss")
-		showVersion  = flag.Bool("version", false, "Show version")
+		mode           = flag.String("mode", "web", "Mode: web (browser reload) or api (no browser reload)")
+		port           = flag.Int("port", 3000, "Port for live reload server (web mode only)")
+		buildCmd       = flag.String("build", "", "Custom build command (default: go build -o /tmp/app)")
+		runCmd         = flag.String("run", "", "Custom run command (default: ./tmp/app)")
+		watchDirs      = flag.String("watch", "", "Comma-separated directories to watch (default: current directory)")
+		watchExts      = flag.String("exts", "", "Comma-separated file extensions to watch (default: .go)")
+		excludeDirs    = flag.String("exclude", "", "Comma-separated directories to exclude")
+		includeTempl   = flag.Bool("templ", false, "Watch .templ files and run templ generate")
+		includeTailw   = flag.Bool("tailwind", false, "Watch tailwind.config.js and run tailwindcss")
+		tailwindInput  = flag.String("tailwind-input", "./input.css", "Tailwind input CSS file")
+		tailwindOutput = flag.String("tailwind-output", "./static/output.css", "Tailwind output CSS file")
+		showVersion    = flag.Bool("version", false, "Show version")
 	)
 
 	flag.Parse()
@@ -46,12 +51,14 @@ func main() {
 	}
 
 	config := &Config{
-		Mode:         *mode,
-		Port:         *port,
-		BuildCmd:     *buildCmd,
-		RunCmd:       *runCmd,
-		IncludeTempl: *includeTempl,
-		IncludeTailw: *includeTailw,
+		Mode:           *mode,
+		Port:           *port,
+		BuildCmd:       *buildCmd,
+		RunCmd:         *runCmd,
+		IncludeTempl:   *includeTempl,
+		IncludeTailw:   *includeTailw,
+		TailwindInput:  *tailwindInput,
+		TailwindOutput: *tailwindOutput,
 	}
 
 	// Parse watch directories
@@ -133,27 +140,11 @@ func parseCommaSeparated(s string) []string {
 		return nil
 	}
 	var result []string
-	for _, part := range splitByComma(s) {
+	for _, part := range strings.Split(s, ",") {
+		part = strings.TrimSpace(part)
 		if part != "" {
 			result = append(result, part)
 		}
-	}
-	return result
-}
-
-func splitByComma(s string) []string {
-	var result []string
-	current := ""
-	for _, c := range s {
-		if c == ',' {
-			result = append(result, current)
-			current = ""
-		} else {
-			current += string(c)
-		}
-	}
-	if current != "" {
-		result = append(result, current)
 	}
 	return result
 }

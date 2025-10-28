@@ -43,8 +43,9 @@ func (w *Watcher) checkFiles(eventCh chan<- string) {
 
 			// Skip excluded directories
 			if info.IsDir() {
+				baseName := filepath.Base(path)
 				for _, exclude := range w.config.ExcludeDirs {
-					if strings.Contains(path, "/"+exclude+"/") || strings.HasSuffix(path, "/"+exclude) {
+					if baseName == exclude {
 						return filepath.SkipDir
 					}
 				}
