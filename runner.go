@@ -87,15 +87,7 @@ func (r *Runner) buildAndRun() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	// Stop existing process
-	if r.cmd != nil && r.cmd.Process != nil {
-		log.Println("🛑 Stopping existing process...")
-		r.cmd.Process.Kill()
-		r.cmd.Wait()
-		r.cmd = nil
-	}
-
-	// Build
+	// Build first (before stopping the old process)
 	log.Printf("🔨 Building: %s", r.config.BuildCmd)
 	buildCmd := exec.Command("sh", "-c", r.config.BuildCmd)
 	buildCmd.Stdout = os.Stdout
@@ -105,17 +97,30 @@ func (r *Runner) buildAndRun() error {
 		return fmt.Errorf("build failed: %w", err)
 	}
 
-	// Run
-	log.Printf("🚀 Starting: %s", r.config.RunCmd)
-	r.cmd = exec.Command("sh", "-c", r.config.RunCmd)
-	r.cmd.Stdout = os.Stdout
-	r.cmd.Stderr = os.Stderr
+	// Start new process
+	log.Printf("🚀 Starting new process: %s", r.config.RunCmd)
+	newCmd := exec.Command("sh", "-c", r.config.RunCmd)
+	newCmd.Stdout = os.Stdout
+	newCmd.Stderr = os.Stderr
 
-	if err := r.cmd.Start(); err != nil {
+	if err := newCmd.Start(); err != nil {
 		return fmt.Errorf("run failed: %w", err)
 	}
 
-	log.Println("✅ Application started successfully")
+	// Give the new process a moment to start up
+	time.Sleep(500 * time.Millisecond)
+
+	// Stop old process (if exists)
+	if r.cmd != nil && r.cmd.Process != nil {
+		log.Println("🛑 Stopping old process...")
+		r.cmd.Process.Kill()
+		r.cmd.Wait()
+	}
+
+	// Update to the new process
+	r.cmd = newCmd
+
+	log.Println("✅ Application reloaded successfully")
 	return nil
 }
 
