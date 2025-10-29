@@ -35,9 +35,9 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
         <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
             <h1 class="text-4xl font-bold text-orange-500 mb-4">🔥 Templ + Tailwind</h1>
             <p class="text-gray-700 mb-4">
-                This example demonstrates hot reloading with Templ templates and Tailwind CSS.
+                This example demonstrates hot reloading with Templ templates and Tailwind CSS, ya boi.
             </p>
-            
+
             <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
                 <p class="text-blue-700">
                     <strong>Note:</strong> In a real application, you would use templ components here.

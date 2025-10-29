@@ -21,6 +21,8 @@ type Config struct {
 	WatchDirs   []string
 	WatchExts   []string
 	ExcludeDirs []string
+	ProxyListen int
+	ProxyTarget string
 }
 
 func main() {
@@ -32,6 +34,8 @@ func main() {
 		watchDirs   = flag.String("watch", "", "Comma-separated directories to watch (default: current directory)")
 		watchExts   = flag.String("exts", "", "Comma-separated file extensions to watch (default: .go)")
 		excludeDirs = flag.String("exclude", "", "Comma-separated directories to exclude")
+		proxyListen = flag.Int("proxy-listen", 5173, "Port for HTML-injecting proxy (web mode). Set to 0 to disable")
+		proxyTarget = flag.String("proxy-target", "http://localhost:8080", "Upstream URL for HTML-injecting proxy (web mode). Empty to disable")
 		showVersion = flag.Bool("version", false, "Show version")
 	)
 
@@ -43,10 +47,12 @@ func main() {
 	}
 
 	config := &Config{
-		Mode:     *mode,
-		Port:     *port,
-		BuildCmd: *buildCmd,
-		RunCmd:   *runCmd,
+		Mode:        *mode,
+		Port:        *port,
+		BuildCmd:    *buildCmd,
+		RunCmd:      *runCmd,
+		ProxyListen: *proxyListen,
+		ProxyTarget: *proxyTarget,
 	}
 
 	// Parse watch directories
@@ -97,19 +103,23 @@ func main() {
 
 	if config.Mode == "web" {
 		log.Printf("   Live reload server: http://localhost:%d", config.Port)
+		if config.ProxyListen != 0 && config.ProxyTarget != "" {
+			log.Printf("   Proxy: http://localhost:%d -> %s (auto inject)", config.ProxyListen, config.ProxyTarget)
+		}
 	}
 
 	runner := NewRunner(config)
+	defer runner.Stop()
 
 	// Handle interrupt signal
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGHUP)
+	defer signal.Stop(sigChan)
 
 	go func() {
-		<-sigChan
-		log.Println("\n🛑 Shutting down...")
+		sig := <-sigChan
+		log.Printf("\n🛑 Shutting down (%s)...", sig)
 		runner.Stop()
-		os.Exit(0)
 	}()
 
 	if err := runner.Start(); err != nil {

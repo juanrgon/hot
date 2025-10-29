@@ -63,6 +63,22 @@ Add this script tag to your HTML templates to enable live reload:
 <script src="http://localhost:3000/livereload.js"></script>
 ```
 
+By default `hot` starts an HTML-injecting proxy on port `5173` that forwards to
+`http://localhost:8080` (the common default for Go web servers). Open
+`http://localhost:5173` in your browser and the live reload script is injected
+automatically—no template edits required. If your app listens on a different
+port, configure the proxy like this:
+
+```bash
+hot --mode web --proxy-target http://localhost:9000 --proxy-listen 5173
+```
+
+Prefer to inject manually? Disable the proxy with `--proxy-listen 0` and include
+the script tag yourself:
+
+```html
+<script src="http://localhost:3000/livereload.js"></script>
+```
 Your browser will automatically reload when you save changes to any Go file!
 
 **Example with custom port:**

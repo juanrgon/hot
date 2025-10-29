@@ -4,10 +4,20 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
 func main() {
+	if delay := os.Getenv("HOT_STARTUP_DELAY"); delay != "" {
+		if d, err := time.ParseDuration(delay); err == nil {
+			log.Printf("⏳ Simulating startup delay: %s", d)
+			time.Sleep(d)
+		} else {
+			log.Printf("⚠️ Invalid HOT_STARTUP_DELAY value %q: %v", delay, err)
+		}
+	}
+
 	http.HandleFunc("/", handleHome)
 	http.HandleFunc("/about", handleAbout)
 
@@ -23,7 +33,6 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hot Reload Demo</title>
-    <script src="http://localhost:3000/livereload.js"></script>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -41,12 +50,12 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 <body>
     <h1>🔥 Hot Reload Demo</h1>
     <p>This is a simple web server with hot reload enabled!</p>
-    
+
     <div class="info">
         <strong>Current time:</strong> ` + time.Now().Format("2006-01-02 15:04:05") + `<br>
-        <strong>Try this:</strong> Edit this file and save. Your browser will reload automatically!
+        <strong>Try this:</strong> Edit this file and save. Your browser will reload automatically. believe ya heard!
     </div>
-    
+
     <p><a href="/about">About Page</a></p>
 </body>
 </html>`
@@ -60,7 +69,6 @@ func handleAbout(w http.ResponseWriter, r *http.Request) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About - Hot Reload Demo</title>
-    <script src="http://localhost:3000/livereload.js"></script>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;

@@ -23,9 +23,13 @@ hot --mode web --watch ./examples/web
 ## Try it
 
 1. Run the command above
-2. Open http://localhost:8080 in your browser
+2. Visit http://localhost:5173 in your browser (this proxy autoloads the live-reload script)
 3. Edit `main.go` and save
 4. Watch your browser automatically reload!
+
+> Want to hit the app directly on http://localhost:8080 instead? Either add
+> `<script src="http://localhost:3000/livereload.js"></script>` to your HTML
+> or start `hot` with `--proxy-listen 0` to disable the injector proxy.
 
 ## Browser Console
 
