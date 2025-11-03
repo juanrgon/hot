@@ -1,0 +1,83 @@
+# hot.toml - Hot Development Server Configuration
+# This file is optional - all settings can be overridden with CLI flags
+
+# Root directory of the project
+root = "."
+
+# Temporary directory for build artifacts
+tmp_dir = "tmp"
+
+[build]
+  # Custom build command (leave empty to use default 'go build')
+  # Example: cmd = "make build-app"
+  cmd = ""
+
+  # Output binary path
+  bin = "./tmp/main"
+
+  # Package to build
+  target = "."
+
+  # Additional arguments for 'go build' (only if cmd is empty)
+  build_args = []
+
+  # Arguments to pass to the running binary
+  run_args = []
+
+  # Commands to run before each build (optional)
+  pre_cmd = []
+
+  # Commands to run after stopping (Ctrl+C) (optional)
+  post_cmd = []
+
+  # Delay before triggering rebuild after file change (milliseconds)
+  delay = 200
+
+  # Log build errors to this file (optional)
+  error_log = ""
+
+  # Stop running binary when build fails
+  stop_on_error = true
+
+  # Grace period before forcefully killing old process
+  kill_delay = "1s"
+
+[watch]
+  # Directories to watch
+  dirs = ["."]
+
+  # File extensions to watch
+  extensions = ["go", "html", "tpl", "tmpl"]
+
+  # Directories to exclude from watching
+  exclude_dirs = ["tmp", "vendor", ".git", "node_modules"]
+
+  # Files to exclude from watching (exact matches)
+  exclude_files = []
+
+  # Regex patterns to exclude
+  exclude_regex = [".*_test\\.go"]
+
+  # Polling interval for file changes
+  poll_interval = "500ms"
+
+[proxy]
+  # Port for the proxy server (access your app here)
+  port = 9000
+
+  # Port for the application server
+  app_port = 8080
+
+  # Enable browser auto-reload (disable for API-only servers)
+  browser_reload = true
+
+[screen]
+  # Clear terminal on rebuild
+  clear_on_rebuild = false
+
+  # Keep scroll position after rebuild
+  keep_scroll = true
+
+[log]
+  # Show timestamps in logs
+  timestamps = false
