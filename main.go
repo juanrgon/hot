@@ -43,6 +43,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -118,6 +119,7 @@ var (
 		BuildCmd      string
 		WatchDirs     []string
 		Extensions    map[string]bool
+		ExcludeRegex  []string
 		BuildArgs     []string
 		RunArgs       []string
 		PollInterval  time.Duration
@@ -679,6 +681,9 @@ func parseFlags() {
 		config.BrowserReload = cfg.Proxy.BrowserReload
 	}
 
+	// Store exclude regex patterns
+	config.ExcludeRegex = cfg.Watch.ExcludeRegex
+
 	// Parse watch directories and extensions
 	config.WatchDirs = strings.Split(watch, ",")
 	config.Extensions = make(map[string]bool)
@@ -1151,6 +1156,17 @@ func startPollingWatcher(events chan<- string) {
 	}
 	seen := make(map[string]fileInfo)
 
+	// Compile exclude regex patterns
+	var excludePatterns []*regexp.Regexp
+	for _, pattern := range config.ExcludeRegex {
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			logger.Yellow(fmt.Sprintf("Invalid exclude_regex pattern '%s': %v", pattern, err))
+			continue
+		}
+		excludePatterns = append(excludePatterns, re)
+	}
+
 	for {
 		time.Sleep(config.PollInterval)
 		currentScan := make(map[string]bool)
@@ -1171,6 +1187,13 @@ func startPollingWatcher(events chan<- string) {
 				ext := filepath.Ext(path)
 				if !config.Extensions[ext] {
 					return nil
+				}
+
+				// Check exclude regex patterns
+				for _, re := range excludePatterns {
+					if re.MatchString(path) {
+						return nil
+					}
 				}
 
 				currentScan[path] = true
