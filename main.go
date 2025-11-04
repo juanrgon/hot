@@ -506,7 +506,7 @@ func cmdConvert() {
 		Proxy: ProxyConfig{
 			Port:       airCfg.Proxy.ProxyPort,
 			AppPort:    airCfg.Proxy.AppPort,
-			AutoReload: airCfg.Proxy.Enabled,
+			BrowserReload: airCfg.Proxy.Enabled,
 		},
 		Screen: ScreenConfig{
 			ClearOnRebuild: airCfg.Screen.ClearOnRebuild,
